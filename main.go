@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -30,6 +29,14 @@ func NewGame() *Game {
 		board:  ebiten.NewImage(10*gs, 22*gs),
 		next:   ebiten.NewImage(4*gs, 3*gs*6),
 	}
+}
+
+func (g *Game) Reset() {
+	g.tetris = NewTetris()
+	g.counter = 0
+	g.needLockdown = false
+	g.lockdownCounter = 0
+	g.lockdownDelayCounter = 0
 }
 
 func (g *Game) MoveLeft() (ok bool) {
@@ -94,10 +101,10 @@ func (g *Game) Put() {
 }
 
 func (g *Game) Update() error {
-	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
-		os.Exit(0)
-	}
 	if g.tetris.GameOver {
+		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+			g.Reset()
+		}
 		return nil
 	}
 
@@ -133,6 +140,9 @@ func (g *Game) Update() error {
 		g.tetris.DoHold()
 	case inpututil.IsKeyJustPressed(ebiten.KeySpace):
 		g.Put()
+		return nil
+	case inpututil.IsKeyJustPressed(ebiten.KeyR):
+		g.Reset()
 		return nil
 	}
 
@@ -261,7 +271,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.next, op)
 
 	if g.tetris.GameOver {
-		ebitenutil.DebugPrint(screen, "GAME OVER")
+		ebitenutil.DebugPrintAt(screen, "GAME OVER", 0, 0)
+		ebitenutil.DebugPrintAt(screen, "PRESS SPACE TO RESTART", 0, 15)
 	}
 }
 
