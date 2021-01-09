@@ -21,6 +21,7 @@ func NewTetris() *Tetris {
 	}
 	t.ShuffleNext()
 	t.newMino()
+
 	return t
 }
 
@@ -30,34 +31,25 @@ func (t *Tetris) newMino() {
 	t.ShuffleNext()
 	t.Counter = 0
 
-	f := func() bool {
-		for _, p := range t.CurMino.BlocksPos() {
-			if t.Board[p.Y][p.X] != MinoNone {
-				return true
-			}
-		}
-		return false
-	}
-
 	// 新しいミノは基本的に20段目からスタートするが、
 	// スタート位置にブロックがあったら21段目からスタートとなり、
 	// さらに置けなければ22段目からスタートとなる
 	// 22段目にも置けない場合はゲームオーバーとなる
 
 	// 20段目
-	if !f() {
+	if !t.minoCollides(t.CurMino) {
 		return
 	}
 
 	// 21段目
 	t.CurMino.Y--
-	if !f() {
+	if !t.minoCollides(t.CurMino) {
 		return
 	}
 
 	// 22段目
 	t.CurMino.Y--
-	if f() {
+	if t.minoCollides(t.CurMino) {
 		t.GameOver = true
 	}
 }
@@ -84,6 +76,15 @@ func (t *Tetris) collide(x, y int) bool {
 		return true
 	}
 	return t.Board[y][x] != MinoNone
+}
+
+func (t *Tetris) minoCollides(m *Mino) bool {
+	for _, p := range m.BlocksPos() {
+		if t.collide(p.X, p.Y) {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Tetris) Put() (ok bool) {
@@ -156,22 +157,96 @@ func (t *Tetris) MoveDown() (ok bool) {
 }
 
 func (t *Tetris) RotateRight() (ok bool) {
-	t.CurMino.RotateRight()
-	for _, p := range t.CurMino.BlocksPos() {
-		if t.collide(p.X, p.Y) {
-			t.CurMino.RotateLeft()
-			return false
+	var xs, ys []int
+	if t.CurMino.Kind != I {
+		switch t.CurMino.Dir {
+		case North:
+			xs = []int{0, -1, -1, 0, -1}
+			ys = []int{0, 0, -1, 2, 2}
+		case East:
+			xs = []int{0, 1, 1, 0, 1}
+			ys = []int{0, 0, 1, -2, -2}
+		case South:
+			xs = []int{0, 1, 1, 0, 1}
+			ys = []int{0, 0, -1, 2, 2}
+		case West:
+			xs = []int{0, -1, -1, 0, -1}
+			ys = []int{0, 0, 1, -2, -2}
+		}
+	} else {
+		switch t.CurMino.Dir {
+		case North:
+			xs = []int{0, -2, 1, -2, 1}
+			ys = []int{0, 0, 0, 1, -2}
+		case East:
+			xs = []int{0, -1, 2, -1, 2}
+			ys = []int{0, 0, 0, -2, 1}
+		case South:
+			xs = []int{0, 2, -1, 2, -1}
+			ys = []int{0, 0, 0, -1, 2}
+		case West:
+			xs = []int{0, -2, 1, 1, -2}
+			ys = []int{0, 0, 0, 2, -1}
+		}
+	}
+	for i := range xs {
+		dx := xs[i]
+		dy := ys[i]
+		clone := t.CurMino.Clone()
+		clone.RotateRight()
+		clone.X += dx
+		clone.Y += dy
+		if !t.minoCollides(clone) {
+			t.CurMino = clone
+			return true
 		}
 	}
 	return true
 }
 
 func (t *Tetris) RotateLeft() (ok bool) {
-	t.CurMino.RotateLeft()
-	for _, p := range t.CurMino.BlocksPos() {
-		if t.collide(p.X, p.Y) {
-			t.CurMino.RotateRight()
-			return false
+	var xs, ys []int
+	if t.CurMino.Kind != I {
+		switch t.CurMino.Dir {
+		case North:
+			xs = []int{0, 1, 1, 0, 1}
+			ys = []int{0, 0, -1, 2, 2}
+		case East:
+			xs = []int{0, 1, 1, 0, 1}
+			ys = []int{0, 0, 1, -2, -2}
+		case South:
+			xs = []int{0, -1, -1, 0, -1}
+			ys = []int{0, 0, -1, 2, 2}
+		case West:
+			xs = []int{0, -1, -1, 0, -1}
+			ys = []int{0, 0, 1, -2, -2}
+		}
+	} else {
+		switch t.CurMino.Dir {
+		case North:
+			xs = []int{0, -1, 2, -1, 2}
+			ys = []int{0, 0, 0, -2, 1}
+		case East:
+			xs = []int{0, 2, -1, 2, -1}
+			ys = []int{0, 0, 0, -1, 2}
+		case South:
+			xs = []int{0, 1, -2, 1, -2}
+			ys = []int{0, 0, 0, 2, -1}
+		case West:
+			xs = []int{0, 1, -2, -2, 1}
+			ys = []int{0, 0, 0, 1, -2}
+		}
+	}
+	for i := range xs {
+		dx := xs[i]
+		dy := ys[i]
+		clone := t.CurMino.Clone()
+		clone.RotateLeft()
+		clone.X += dx
+		clone.Y += dy
+		if !t.minoCollides(clone) {
+			t.CurMino = clone
+			return true
 		}
 	}
 	return true

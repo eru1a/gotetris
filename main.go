@@ -143,7 +143,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if !g.tetris.GameOver {
 		shadow := g.tetris.Shadow()
 		shadowColor := MinoColor(shadow.Kind)
-		shadowColor.A = 125
+		shadowColor.A = 50
 		for _, p := range shadow.BlocksPos() {
 			ebitenutil.DrawRect(g.board, float64(p.X*gs), float64(p.Y*gs),
 				float64(gs), float64(gs), shadowColor)
