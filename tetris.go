@@ -11,7 +11,6 @@ type Tetris struct {
 	Next     []MinoKind
 	CanHold  bool
 	GameOver bool
-	Counter  int
 }
 
 func NewTetris() *Tetris {
@@ -29,7 +28,6 @@ func (t *Tetris) newMino() {
 	t.CurMino = NewMino(t.Next[0])
 	t.Next = t.Next[1:]
 	t.ShuffleNext()
-	t.Counter = 0
 
 	// 新しいミノは基本的に20段目からスタートするが、
 	// スタート位置にブロックがあったら21段目からスタートとなり、
@@ -87,7 +85,7 @@ func (t *Tetris) minoCollides(m *Mino) bool {
 	return false
 }
 
-func (t *Tetris) Put() (ok bool) {
+func (t *Tetris) Put() {
 	shadow := t.Shadow()
 	for _, p := range shadow.BlocksPos() {
 		if p.Y >= 0 {
@@ -96,7 +94,6 @@ func (t *Tetris) Put() (ok bool) {
 	}
 	t.newMino()
 	t.CanHold = true
-	return !t.GameOver
 }
 
 func (t *Tetris) DeleteLines() (n int) {
@@ -145,7 +142,6 @@ func (t *Tetris) MoveRight() (ok bool) {
 }
 
 func (t *Tetris) MoveDown() (ok bool) {
-	t.Counter = 0
 	t.CurMino.Y++
 	for _, p := range t.CurMino.BlocksPos() {
 		if t.collide(p.X, p.Y) {
